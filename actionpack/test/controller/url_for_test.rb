@@ -534,6 +534,25 @@ module AbstractController
         end
       end
 
+      def test_multiple_routes
+        with_routing do |set|
+          set.draw do
+            scope ':lang-:country' do
+              get 'page1', to: 'index#index'
+            end
+
+            scope 'subdomain' do
+              get 'page2', to: 'index#index'
+            end
+          end
+
+          kls = Class.new { include set.url_helpers }
+          kls.default_url_options[:host] = "www.basecamphq.com"
+
+          assert_equal "http://www.basecamphq.com/page2?lang=en&country=au", kls.new.url_for(controller: "index", lang: "en", country: "us")
+        end
+      end
+
       private
         def extract_params(url)
           url.split("?", 2).last.split("&").sort
